@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potato Plant Disease Detection</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Potato Plant Disease Detection</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="imageUpload">Upload an image of a potato leaf:</label>
+            <input type="file" id="imageUpload" name="file" accept="image/*" onchange="previewImage(event)">
+            <button type="submit">Submit</button>
+        </form>
+        <div id="imagePreview"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = '';
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Uploaded Image';
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '300px';
+                imagePreview.appendChild(img);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('imageUpload');
+            if (fileInput.files.length === 0) {
+                document.getElementById('result').innerText = 'Please select an image to upload.';
+                return;
+            }
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            document.getElementById('result').innerText = `Prediction: ${result.class}`;
+        });
+    </script>
+</body>
+</html>
